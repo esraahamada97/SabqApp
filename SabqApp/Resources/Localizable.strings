@@ -1,0 +1,14 @@
+/* 
+  Localizable.strings
+  sab2
+
+  Created by user on 10/30/19.
+  Copyright © 2019 esraa mohamed. All rights reserved.
+*/
+"news" = "اخبار";
+"popular" = "الشائع";
+"sections" = "الأقسام";
+"search" = "البحث";
+"choices" = "إختياراتي";
+
+
