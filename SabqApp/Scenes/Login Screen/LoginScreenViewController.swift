@@ -9,16 +9,18 @@
 import UIKit
 import GoogleSignIn
 import FittedSheets
+ import AuthenticationServices
 
 class LoginScreenViewController: UIViewController {
     var iconClick = true
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
 
     @IBOutlet weak private var passwordTextField: UITextField!
     
     @IBOutlet weak private var usernameTextField: UITextField!
     
     @IBOutlet weak private var loginButton: UIButton!
-    var controller: ActionSheetViewController?
+    var actionSheetController: ActionSheetViewController?
     var  sheetController: SheetViewController?
 
     override func viewDidLoad() {
@@ -37,11 +39,11 @@ class LoginScreenViewController: UIViewController {
     
      @IBAction func socialLoginAction(_ sender: Any) {
         
-        controller = ActionSheetViewController()
+        actionSheetController = ActionSheetViewController()
         // It is important to set animated to false or it behaves weird currently
 
          sheetController = SheetViewController(
-            controller: controller ?? UIViewController())
+            controller: actionSheetController ?? UIViewController())
         sheetController?.preferredContentSize = CGSize(
             width: self.view.frame.size.width,
             height: self.view.frame.size.height / 2)
@@ -50,14 +52,52 @@ class LoginScreenViewController: UIViewController {
 
      }
     
-    /*
-     // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @IBAction func appleLogin(_ sender: Any) {
+        performExistingAccountSetupFlows()
     }
-    */
+    
+    func performExistingAccountSetupFlows() {
+               // Prepare requests for both Apple ID and password providers.
+               let requests = [ASAuthorizationAppleIDProvider().createRequest()]
+               
+               // Create an authorization controller with the given requests.
+               let authorizationController = ASAuthorizationController(authorizationRequests: requests)
+            authorizationController.delegate = self as? ASAuthorizationControllerDelegate
+            authorizationController.presentationContextProvider = self as? ASAuthorizationControllerPresentationContextProviding
+               authorizationController.performRequests()
+           }
+           
+           @objc
+           func handleAuthorizationAppleIDButtonPress() {
+               let appleIDProvider = ASAuthorizationAppleIDProvider()
+               let request = appleIDProvider.createRequest()
+               request.requestedScopes = [.fullName, .email]
+               
+               let authorizationController = ASAuthorizationController(authorizationRequests: [request])
+            authorizationController.delegate = self as? ASAuthorizationControllerDelegate
+            authorizationController.presentationContextProvider = self as? ASAuthorizationControllerPresentationContextProviding
+               authorizationController.performRequests()
+           }
+}
 
+extension LoginScreenViewController: ASAuthorizationControllerDelegate {
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        if authorization.credential is ASAuthorizationAppleIDCredential {
+            appDelegate.routingObject.setWindowHome(windowFromAppDelegate: appDelegate.window ?? UIWindow())
+            
+           
+        }
+    }
+
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        // Handle error.
+    }
+}
+
+
+extension LoginScreenViewController: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return self.view.window!
+    }
 }

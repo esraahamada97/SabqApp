@@ -47,7 +47,7 @@ ListViewProtocal {
        
       
          newsAdapter.reloadData = reloadData
-         //  homeTableView.windless.start()
+       homeTableView.windless.start()
         
     }
     
@@ -134,6 +134,7 @@ ListViewProtocal {
     
     func reloadData() {
         homeTableView.reloadData()
+         homeTableView.windless.end()
     }
     
     override func setPresenter(presenter: ListPresenter) {

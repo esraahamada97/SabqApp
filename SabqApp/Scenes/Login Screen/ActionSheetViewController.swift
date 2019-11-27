@@ -7,54 +7,85 @@
 //
 
 import UIKit
+import Firebase
 import GoogleSignIn
-class ActionSheetViewController: UIViewController, GIDSignInDelegate {
+import TwitterKit
+import FBSDKCoreKit
+import FBSDKLoginKit
 
+class ActionSheetViewController: UIViewController {
+    
     @IBOutlet weak private var googleButton: UIButton!
     @IBOutlet weak private var googleImageButton: UIButton!
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         GIDSignIn.sharedInstance()?.presentingViewController = self
-
-         // Automatically sign in the user.
-         GIDSignIn.sharedInstance()?.restorePreviousSignIn()
-        // Do any additional setup after loading the view.
         googleButton.layer.borderWidth = 1
         googleImageButton.layer.borderWidth = 1
         googleImageButton.layer.borderColor = UIColor.lightGray.cgColor
         googleButton.layer.borderColor = UIColor.lightGray.cgColor
-        GIDSignIn.sharedInstance().delegate = self
-        //GIDSignIn.sharedInstance().uiDelegate = self
-        
     }
-
+    
     @IBAction func googleSigninButton(_ sender: Any) {
+        //GIDSignIn.sharedInstance().signOut()
+        let firebaseAuth = Auth.auth()
+        do {
+          try firebaseAuth.signOut()
+        } catch let signOutError as NSError {
+          print ("Error signing out: %@", signOutError)
+        }
         GIDSignIn.sharedInstance().signIn()
         print("esraaaa")
         
     }
-   
-    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
-        print("Google Sing In didSignInForUser")
-        
-       
-        if let error = error {
-          print(error.localizedDescription)
-          return
-        }
     
-      // Start Google OAuth2 Authentication
-      func sign(_ signIn: GIDSignIn?, present viewController: UIViewController?) {
-      
-        // Showing OAuth2 authentication window
-        if let aController = viewController {
-          present(aController, animated: true) {() -> Void in }
+    @IBAction func twitterLogin(_ sender: Any) {
+        logoutTwitter()
+        
+        TWTRTwitter.sharedInstance().logIn(completion: { (session, error) in
+            if (session != nil) {
+                print("signed in as (String(describing: session?.userName))");
+                self.appDelegate.routingObject.setWindowHome(windowFromAppDelegate: self.appDelegate.window ?? UIWindow())
+            } else {
+                print("error: (String(describing: error?.localizedDescription))");
+            }
+        })
+        
+    }
+    func logoutTwitter() {
+        let sessionStore = TWTRTwitter.sharedInstance().sessionStore
+        if let userID = sessionStore.session()?.userID {
+            sessionStore.logOutUserID(userID)
         }
-      }
-      // After Google OAuth2 authentication
-      func sign(_ signIn: GIDSignIn?, dismiss viewController: UIViewController?) {
-        // Close OAuth2 authentication window
-        dismiss(animated: true) {() -> Void in }
-      }
-}
+    }
+    
+    
+    @IBAction func facebookLoginAction(_ sender: Any) {
+        let loginManager = LoginManager()
+        loginManager.logIn(permissions: ["public_profile", "email"], from: self) { (result, error) in
+   if let error = error {
+     print("Failed to login: \(error.localizedDescription)")
+     return
+   }
+            guard let accessToken = AccessToken.current else {
+     print("Failed to get access token")
+     return
+   }
+   let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+   // Perform login by calling Firebase APIs
+   Auth.auth().signInAndRetrieveData(with: credential) { (user, error) in
+     if let error = error {
+       print("Login error: \(error.localizedDescription)")
+       let alertController = UIAlertController(title: "Login Error", message: error.localizedDescription, preferredStyle: .alert)
+       let okayAction = UIAlertAction(title: "OK", style: .cancel, handler: nil)
+       alertController.addAction(okayAction)
+       self.present(alertController, animated: true, completion: nil)
+       return
+     }
+     // self.performSegue(withIdentifier: self.signInSegue, sender: nil)
+   }
+ }
+   }
+    
 }

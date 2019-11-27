@@ -111,7 +111,7 @@ UITableViewDataSource {
                 
             default :
                 return UITableViewCell()
-                
+
             }
         }
         switch indexPath.section {
@@ -123,6 +123,7 @@ UITableViewDataSource {
             //            cell.layoutIfNeeded()
             cell.configurTableViewCell(sliderArray: sliderList)
             cell.reloadCollectionView()
+            cell.windless.end()
             return cell
         case 1://first cells
             let materialsObj = list?[indexPath.row]
@@ -135,6 +136,7 @@ UITableViewDataSource {
                 
                 cell.configurTableViewCell(imagesArray: imagesList)
                 //cell.reloadCollectionView()
+                cell.windless.end()
                 return cell
             } else  if(materialsObj?.type == "videos") {
                 guard let cell: VideosTableViewCell = tableView.dequeueReusableCell(
@@ -144,6 +146,7 @@ UITableViewDataSource {
                 //                cell.layoutIfNeeded()
                 cell.configurTableViewCell(videosArray: videosList)
                 //cell.reloadCollectionView()
+                cell.windless.end()
                 return cell
             } else  if(materialsObj?.type == "articles") {
                 guard  let cell: ArticlesTableViewCell = tableView.dequeueReusableCell(
@@ -153,6 +156,7 @@ UITableViewDataSource {
                 //                cell.layoutIfNeeded()
                 cell.configurTableViewCell(articlesArray: articlesList)
                 //cell.reloadCollectionView()
+                cell.windless.end()
                 return cell
             } else {
                 guard let  cell = tableView.dequeueReusableCell(
@@ -160,12 +164,14 @@ UITableViewDataSource {
                     for: indexPath) as? HomeTableViewCell else { fatalError("home cell empty") }
                 
                 cell.configur(materials: materialsObj ?? Materials(type: "news"))
+                cell.windless.end()
                 return cell
             }
         default:
             return UITableViewCell()
         }
-    }
+        }
+    
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 0
